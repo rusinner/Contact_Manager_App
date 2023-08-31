@@ -82,7 +82,7 @@ class BaseController {
     let id = req.params.id;
     const body = req.body;
     this.repo
-      .update(body, id)
+      .update(id, body)
       .then((doc) => {
         return this.ok(res, doc);
       })

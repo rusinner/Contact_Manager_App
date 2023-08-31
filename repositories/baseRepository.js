@@ -15,8 +15,8 @@ class BaseRepository {
     var data = await this.collection.create(model);
     return data;
   }
-  async update(model) {
-    var data = await this.collection.findByIdAndUpdate(model._id, model);
+  async update(id, model) {
+    var data = await this.collection.findByIdAndUpdate(id, model);
     return data;
   }
   async deleteById(id) {
