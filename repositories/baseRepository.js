@@ -23,6 +23,10 @@ class BaseRepository {
     var data = await this.collection.findByIdAndDelete(id);
     return data;
   }
+  async login(email) {
+    var data = await this.collection.findOne(email);
+    return data;
+  }
 }
 
 module.exports = BaseRepository;

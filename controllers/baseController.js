@@ -1,5 +1,9 @@
 //import status codes package
 httpStatusCodes = require("http-status-codes");
+//import bcrypt for hash password
+const bcrypt = require("bcrypt");
+//import jwt package
+const jwt = require("jsonwebtoken");
 
 class BaseController {
   constructor(repoClass) {
@@ -38,7 +42,7 @@ class BaseController {
     console.log(error);
     return res
       .status(httpStatusCodes.INTERNAL_SERVER_ERROR)
-      .send({ message: "Internal Server Error" });
+      .send({ message: error.message });
   }
 
   //common db opration methods
@@ -68,24 +72,14 @@ class BaseController {
   //create new document
   add = (req, res) => {
     const body = req.body;
-    const isNull = Object.values(body).every((value) => {
-      if (value === null) {
-        return true;
-      }
-      return false;
-    });
-    if (isNull) {
-      console.log("Please fill all fields");
-    } else {
-      this.repo
-        .create(body)
-        .then((doc) => {
-          return this.created(res, doc);
-        })
-        .catch((err) => {
-          return { error: this.internalServerError(res, err), message: err };
-        });
-    }
+    this.repo
+      .create(body)
+      .then((doc) => {
+        return this.created(res, doc);
+      })
+      .catch((err) => {
+        return this.internalServerError(res, err);
+      });
   };
 
   update = (req, res) => {
@@ -114,12 +108,46 @@ class BaseController {
       });
   };
 
-  // register = (req, res) => {
-  //   res.json({ message: "user register" });
-  // };
+  register = async (req, res) => {
+    const { username, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log(hashedPassword);
+    this.repo
+      .create({ username, email, password: hashedPassword })
+      .then((doc) => {
+        return this.created(res, doc);
+      })
+      .catch((err) => {
+        return this.internalServerError(res, err);
+      });
+  };
 
-  login = (req, res) => {
-    res.json({ message: "user logged in" });
+  login = async (req, res) => {
+    const { email, password } = req.body;
+    this.repo
+      .login(email)
+      .then((doc) => {
+        const user = doc.username;
+        if (user && bcrypt.compare(password, doc.password)) {
+          const accessToken = jwt.sign(
+            {
+              user: {
+                username: doc.username,
+                email: doc.email,
+                id: doc._id,
+              },
+            },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: "1m" }
+          );
+          console.log(accessToken);
+        }
+
+        return this.ok(res, doc);
+      })
+      .catch((err) => {
+        return this.internalServerError(res, err);
+      });
   };
 }
 
