@@ -42,7 +42,7 @@ class BaseController {
   }
 
   //common db opration methods
-  //find all documents of a type
+  //find all documents of a type contacts
   getAll = (req, res) => {
     this.repo
       .findAll()
@@ -68,14 +68,24 @@ class BaseController {
   //create new document
   add = (req, res) => {
     const body = req.body;
-    this.repo
-      .create(body)
-      .then((doc) => {
-        return this.created(res, doc);
-      })
-      .catch((err) => {
-        return this.internalServerError(res, err);
-      });
+    const isNull = Object.values(body).every((value) => {
+      if (value === null) {
+        return true;
+      }
+      return false;
+    });
+    if (isNull) {
+      console.log("Please fill all fields");
+    } else {
+      this.repo
+        .create(body)
+        .then((doc) => {
+          return this.created(res, doc);
+        })
+        .catch((err) => {
+          return { error: this.internalServerError(res, err), message: err };
+        });
+    }
   };
 
   update = (req, res) => {
@@ -102,6 +112,14 @@ class BaseController {
       .catch((err) => {
         return this.internalServerError(res, err);
       });
+  };
+
+  // register = (req, res) => {
+  //   res.json({ message: "user register" });
+  // };
+
+  login = (req, res) => {
+    res.json({ message: "user logged in" });
   };
 }
 
