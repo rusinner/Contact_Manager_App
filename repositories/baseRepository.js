@@ -25,6 +25,11 @@ class BaseRepository {
   }
   async login(email) {
     var data = await this.collection.findOne(email);
+
+    return data;
+  }
+  async getCurrent(email) {
+    var data = await this.collection.findOne(email);
     return data;
   }
 }

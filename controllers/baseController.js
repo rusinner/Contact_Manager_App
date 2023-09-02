@@ -122,7 +122,7 @@ class BaseController {
       });
   };
 
-  login = async (req, res) => {
+  login = (req, res) => {
     const { email, password } = req.body;
     this.repo
       .login(email)
@@ -138,7 +138,7 @@ class BaseController {
               },
             },
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: "1m" }
+            { expiresIn: "10m" }
           );
           console.log(accessToken);
         }
@@ -147,6 +147,18 @@ class BaseController {
       })
       .catch((err) => {
         return this.internalServerError(res, err);
+      });
+  };
+
+  getCurrent = (req, res) => {
+    const { email } = req.body;
+    this.repo
+      .getCurrent(email)
+      .then((doc) => {
+        return this.ok(res, doc);
+      })
+      .catch((err) => {
+        return this.unauthorized(res, err);
       });
   };
 }
