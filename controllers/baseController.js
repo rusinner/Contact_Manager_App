@@ -57,6 +57,17 @@ class BaseController {
         return this.internalServerError(res, err);
       });
   };
+  //getAllById
+  getAllByUser = (req, res) => {
+    this.repo
+      .findAllByUser({ user_id: req.user.id })
+      .then((doc) => {
+        return this.ok(res, doc);
+      })
+      .catch((err) => {
+        return this.internalServerError(res, err);
+      });
+  };
   //get byId
   getById = (req, res) => {
     let id = req.params.id;
@@ -123,12 +134,11 @@ class BaseController {
   };
 
   login = (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
     this.repo
-      .login(email)
+      .login(username)
       .then((doc) => {
-        const user = doc.username;
-        if (user && bcrypt.compare(password, doc.password)) {
+        if (username && bcrypt.compare(password, doc.password)) {
           const accessToken = jwt.sign(
             {
               user: {
@@ -137,10 +147,11 @@ class BaseController {
                 id: doc._id,
               },
             },
+
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: "10m" }
           );
-          console.log(accessToken);
+          console.log(accessToken, username);
         }
 
         return this.ok(res, doc);
@@ -151,9 +162,9 @@ class BaseController {
   };
 
   getCurrent = (req, res) => {
-    const { email } = req.body;
+    const { username } = req.body;
     this.repo
-      .getCurrent(email)
+      .getCurrent(username)
       .then((doc) => {
         return this.ok(res, doc);
       })
